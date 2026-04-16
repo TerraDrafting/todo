@@ -289,22 +289,25 @@ async function deleteSubtask(i,j) {
 async function updateTask(i,fields) {
   setSyncStatus('syncing');
   const {error} = await supabase.from('tasks').update(fields).eq('id',tasks[i].id);
-  if(error) setSyncStatus('error'); else setSyncStatus('synced');
+  if(error){ setSyncStatus('error'); return; }
+  await loadTasks(); setSyncStatus('synced');
 }
 
 async function addTask() {
   const inp=document.getElementById('task-input');
   const v=inp.value.trim(); if(!v)return;
-  inp.value='';
-  setSyncStatus('syncing');
+  inp.value=''; setSyncStatus('syncing');
   const {error} = await supabase.from('tasks').insert({text:v,done:false,subtasks:[],user_id:currentUser.id});
-  if(error) setSyncStatus('error'); else setSyncStatus('synced');
+  if(error){ setSyncStatus('error'); return; }
+  await loadTasks(); setSyncStatus('synced');
 }
 
 async function deleteTask(i) {
   setSyncStatus('syncing');
-  const {error} = await supabase.from('tasks').delete().eq('id',tasks[i].id);
-  if(error) setSyncStatus('error'); else { expandedTasks.delete(i); setSyncStatus('synced'); }
+  const id=tasks[i].id; expandedTasks.delete(i);
+  const {error} = await supabase.from('tasks').delete().eq('id',id);
+  if(error){ setSyncStatus('error'); return; }
+  await loadTasks(); setSyncStatus('synced');
 }
 
 document.getElementById('btn-add').addEventListener('click',addTask);
@@ -323,7 +326,7 @@ document.getElementById('btn-reset').addEventListener('click',async()=>{
     })));
   }
   await supabase.from('tasks').delete().eq('user_id',currentUser.id);
-  setSyncStatus('synced');
+  await loadTasks(); setSyncStatus('synced');
 });
 
 async function renderArchive() {
