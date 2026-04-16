@@ -6,15 +6,41 @@
 <title>Daily To-Do</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:#0a0a0a;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+html,body{background:#0a0a0a;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#f0f0f0}
+.screen{display:none}.screen.active{display:block}
+
+/* Login */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem}
+.login-card{background:#111;border:0.5px solid #222;border-radius:12px;padding:2.5rem 2rem;width:100%;max-width:360px;text-align:center}
+.login-title{font-size:22px;font-weight:500;color:#f0f0f0;margin-bottom:6px}
+.login-sub{font-size:14px;color:#555;margin-bottom:2rem}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:44px;border-radius:8px;border:0.5px solid #2a2a2a;background:#141414;color:#ddd;font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;transition:background .15s,border-color .15s}
+.btn-google:hover{background:#1a1a1a;border-color:#444}
+.btn-google svg{flex-shrink:0}
+.login-error{font-size:13px;color:#E24B4A;margin-top:1rem;display:none}
+
+/* App */
 .app{max-width:580px;margin:0 auto;padding:2rem 1.25rem 3rem}
-.tab-row{display:flex;gap:2px;margin-bottom:1.5rem;border-bottom:0.5px solid #2a2a2a;padding-bottom:0}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+.user-info{display:flex;align-items:center;gap:8px}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:#1D9E75;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#fff;overflow:hidden;flex-shrink:0}
+.user-avatar img{width:100%;height:100%;object-fit:cover}
+.user-name{font-size:13px;color:#666}
+.btn-signout{height:28px;padding:0 10px;font-size:12px;border-radius:6px;border:0.5px solid #2a2a2a;background:transparent;color:#555;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-signout:hover{color:#E24B4A;border-color:#4a1515;background:#2a0a0a}
+.tab-row{display:flex;gap:2px;margin-bottom:1.5rem;border-bottom:0.5px solid #2a2a2a}
 .tab{padding:8px 16px;font-size:14px;font-weight:400;color:#666;background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:color .15s}
 .tab.active{color:#f0f0f0;font-weight:500;border-bottom:2px solid #1D9E75}
 .tab:hover:not(.active){color:#ccc}
 .panel{display:none}.panel.active{display:block}
 .date-line{font-size:13px;color:#555;margin-bottom:4px}
 .title{font-size:22px;font-weight:500;color:#f0f0f0;margin-bottom:1.25rem}
+.sync-status{display:flex;align-items:center;gap:6px;font-size:12px;color:#555;margin-bottom:1rem;height:18px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#555;flex-shrink:0;transition:background .3s}
+.sync-dot.synced{background:#1D9E75}
+.sync-dot.syncing{background:#BA7517;animation:pulse 1s infinite}
+.sync-dot.error{background:#E24B4A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .progress-meta{display:flex;justify-content:space-between;margin-bottom:6px}
 .progress-label{font-size:13px;color:#666}
 .progress-pct{font-size:13px;font-weight:500;color:#f0f0f0}
@@ -26,7 +52,7 @@ html,body{background:#0a0a0a;min-height:100vh;font-family:-apple-system,BlinkMac
 .input-row input::placeholder{color:#444}
 .btn-add{height:40px;padding:0 18px;font-size:14px;font-weight:500;border-radius:8px;border:0.5px solid #1D9E75;background:#1D9E75;color:#fff;cursor:pointer;font-family:inherit;transition:background .15s;white-space:nowrap}
 .btn-add:hover{background:#0F6E56;border-color:#0F6E56}
-.task-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem}
+.task-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem;min-height:40px}
 .task-item{background:#111;border:0.5px solid #222;border-radius:8px;overflow:hidden}
 .task-main{display:flex;align-items:center;gap:10px;padding:10px 12px}
 .task-item.done>.task-main .task-text{text-decoration:line-through;color:#444}
@@ -45,7 +71,7 @@ html,body{background:#0a0a0a;min-height:100vh;font-family:-apple-system,BlinkMac
 .sub-count{font-size:11px;color:#555;margin-left:2px}
 .subtask-area{padding:0 12px 10px 40px;display:flex;flex-direction:column;gap:4px}
 .subtask-input-row{display:flex;gap:6px;margin-top:4px}
-.subtask-input-row input{flex:1;height:30px;padding:0 10px;font-size:13px;border-radius:8px;border:0.5px solid #2a2a2a;background:#0a0a0a;color:#ddd;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s}
+.subtask-input-row input{flex:1;height:30px;padding:0 10px;font-size:13px;border-radius:8px;border:0.5px solid #2a2a2a;background:#0a0a0a;color:#ddd;font-family:inherit;outline:none}
 .subtask-input-row input:focus{box-shadow:0 0 0 2px #0F6E56;border-color:#1D9E75}
 .subtask-input-row input::placeholder{color:#444}
 .btn-sub-add{height:30px;padding:0 10px;font-size:12px;border-radius:8px;border:0.5px solid #2a2a2a;background:transparent;color:#888;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
@@ -75,165 +101,162 @@ html,body{background:#0a0a0a;min-height:100vh;font-family:-apple-system,BlinkMac
 .archive-sub{font-size:12px;color:#444;margin-top:2px}
 .archive-date{font-size:12px;color:#444;flex-shrink:0}
 .archive-title{font-size:22px;font-weight:500;color:#f0f0f0;margin-bottom:1.25rem}
-.sync-status{display:flex;align-items:center;gap:6px;font-size:12px;color:#555;margin-bottom:1rem;height:18px}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:#555;flex-shrink:0;transition:background .3s}
-.sync-dot.synced{background:#1D9E75}
-.sync-dot.syncing{background:#BA7517;animation:pulse 1s infinite}
-.sync-dot.error{background:#E24B4A}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.loading-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-size:14px;color:#555;z-index:10}
-.app-wrap{position:relative;min-height:200px}
+.loading-msg{text-align:center;padding:2rem;color:#444;font-size:14px}
 </style>
 </head>
 <body>
-<div class="app">
-  <div class="tab-row">
-    <button class="tab active" data-tab="todo">Today</button>
-    <button class="tab" data-tab="archive">Archive</button>
-  </div>
 
-  <div class="panel active" id="panel-todo">
-    <div class="date-line" id="date-line"></div>
-    <div class="title">Today's tasks</div>
-    <div class="sync-status">
-      <div class="sync-dot" id="sync-dot"></div>
-      <span id="sync-label">Connecting…</span>
-    </div>
-    <div class="progress-meta">
-      <span class="progress-label">Progress</span>
-      <span class="progress-pct" id="pct">0%</span>
-    </div>
-    <div class="progress-track"><div class="progress-fill" id="fill" style="width:0%"></div></div>
-    <div class="input-row">
-      <input type="text" id="task-input" placeholder="Add a new task…" maxlength="140"/>
-      <button class="btn-add" id="btn-add">Add</button>
-    </div>
-    <div class="app-wrap">
-      <div class="loading-overlay" id="loading">Loading tasks…</div>
-      <div class="task-list" id="task-list"></div>
-    </div>
-    <div class="footer">
-      <span class="count-text" id="count-text">No tasks yet</span>
-      <button class="btn-reset" id="btn-reset">Reset list</button>
+<div class="screen active" id="screen-login">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-title">Daily To-Do</div>
+      <div class="login-sub">Sign in to access your tasks</div>
+      <button class="btn-google" id="btn-google">
+        <svg width="18" height="18" viewBox="0 0 18 18"><path fill="#4285F4" d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"/><path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.258c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z"/><path fill="#FBBC05" d="M3.964 10.707A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.707V4.961H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.039l3.007-2.332z"/><path fill="#EA4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.961L3.964 6.293C4.672 4.166 6.656 3.58 9 3.58z"/></svg>
+        Continue with Google
+      </button>
+      <div class="login-error" id="login-error">Something went wrong. Please try again.</div>
     </div>
   </div>
+</div>
 
-  <div class="panel" id="panel-archive">
-    <div class="archive-title">Archive</div>
-    <div class="archive-filters">
-      <button class="filter-btn active" data-range="day">Today</button>
-      <button class="filter-btn" data-range="week">Past week</button>
-      <button class="filter-btn" data-range="month">Past month</button>
-      <button class="filter-btn" data-range="all">All time</button>
+<div class="screen" id="screen-app">
+  <div class="app">
+    <div class="topbar">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar"></div>
+        <span class="user-name" id="user-name"></span>
+      </div>
+      <button class="btn-signout" id="btn-signout">Sign out</button>
     </div>
-    <div id="archive-list"></div>
+
+    <div class="tab-row">
+      <button class="tab active" data-tab="todo">Today</button>
+      <button class="tab" data-tab="archive">Archive</button>
+    </div>
+
+    <div class="panel active" id="panel-todo">
+      <div class="date-line" id="date-line"></div>
+      <div class="title">Today's tasks</div>
+      <div class="sync-status">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-label">Connecting…</span>
+      </div>
+      <div class="progress-meta">
+        <span class="progress-label">Progress</span>
+        <span class="progress-pct" id="pct">0%</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="fill" style="width:0%"></div></div>
+      <div class="input-row">
+        <input type="text" id="task-input" placeholder="Add a new task…" maxlength="140"/>
+        <button class="btn-add" id="btn-add">Add</button>
+      </div>
+      <div class="task-list" id="task-list"><div class="loading-msg">Loading tasks…</div></div>
+      <div class="footer">
+        <span class="count-text" id="count-text">No tasks yet</span>
+        <button class="btn-reset" id="btn-reset">Reset list</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-archive">
+      <div class="archive-title">Archive</div>
+      <div class="archive-filters">
+        <button class="filter-btn active" data-range="day">Today</button>
+        <button class="filter-btn" data-range="week">Past week</button>
+        <button class="filter-btn" data-range="month">Past month</button>
+        <button class="filter-btn" data-range="all">All time</button>
+      </div>
+      <div id="archive-list"></div>
+    </div>
   </div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, getDocs, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBkCHzH9p5cHpu2KG5dieuexkVsrPpmMxI",
-  authDomain: "to-do-list-6f13e.firebaseapp.com",
-  projectId: "to-do-list-6f13e",
-  storageBucket: "to-do-list-6f13e.firebasestorage.app",
-  messagingSenderId: "328322537248",
-  appId: "1:328322537248:web:f2efb305fe3dbdbb466945"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-const tasksCol = collection(db, "tasks");
-const archiveCol = collection(db, "archive");
+const SUPABASE_URL = 'https://rqzzghzqdwblhhvmvsad.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_Wuo48hpF1gk4_OuILcsLYw_62J0nxQN';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
 let tasks = [];
-let archive = [];
 let expandedTasks = new Set();
-let archiveRange = "day";
-let loaded = false;
+let archiveRange = 'day';
+let currentUser = null;
+let realtimeChannel = null;
 
-function today() { return new Date().toLocaleDateString("en-US", {weekday:"long",month:"long",day:"numeric"}); }
-function todayKey() { const d = new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
-function fmtDate(ts) { return new Date(ts).toLocaleDateString("en-US", {month:"short",day:"numeric",year:"numeric"}); }
+function today() { return new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}); }
+function todayKey() { const d=new Date(); return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate(); }
+function fmtDate(ts) { return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
 
-document.getElementById("date-line").textContent = today();
-
-function setSyncStatus(state) {
-  const dot = document.getElementById("sync-dot");
-  const lbl = document.getElementById("sync-label");
-  dot.className = "sync-dot " + state;
-  lbl.textContent = state === "synced" ? "Synced" : state === "syncing" ? "Saving…" : "Offline — changes may not save";
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
 }
 
-function countSubDone(sub) { return (sub||[]).filter(s=>s.done).length; }
+function setSyncStatus(state) {
+  const dot = document.getElementById('sync-dot');
+  const lbl = document.getElementById('sync-label');
+  dot.className = 'sync-dot ' + state;
+  lbl.textContent = state==='synced'?'Synced':state==='syncing'?'Saving…':'Connection error';
+}
+
+function countSubDone(sub){ return (sub||[]).filter(s=>s.done).length; }
 
 function render() {
-  const list = document.getElementById("task-list");
+  const list = document.getElementById('task-list');
   const total = tasks.length;
   const done = tasks.filter(t=>t.done).length;
-  const pct = total === 0 ? 0 : Math.round((done/total)*100);
-  document.getElementById("fill").style.width = pct+"%";
-  document.getElementById("pct").textContent = pct+"%";
-  document.getElementById("count-text").textContent = total === 0 ? "No tasks yet" : done+" of "+total+" completed";
-
-  if (total === 0) { list.innerHTML = '<div class="empty-state">Add your first task above</div>'; return; }
-  list.innerHTML = "";
-  tasks.forEach((task, i) => {
-    const item = document.createElement("div");
-    item.className = "task-item" + (task.done ? " done" : "");
-    const main = document.createElement("div"); main.className = "task-main";
-
-    const box = document.createElement("div");
-    box.className = "checkbox" + (task.done ? " checked" : "");
-    box.innerHTML = '<svg class="chk-svg" viewBox="0 0 10 7"><path d="M1 3.5L3.5 6L9 1"/></svg>';
-    box.addEventListener("click", () => toggleTask(i));
-
-    const txt = document.createElement("span"); txt.className = "task-text"; txt.textContent = task.text;
-
-    const subs = task.subtasks || [];
-    const subCountEl = document.createElement("span"); subCountEl.className = "sub-count";
-    if (subs.length > 0) subCountEl.textContent = countSubDone(subs)+"/"+subs.length;
-
-    const actions = document.createElement("div"); actions.className = "task-actions";
-
-    const subToggle = document.createElement("button"); subToggle.className = "icon-btn"; subToggle.title = "Subtasks";
-    subToggle.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h6M2 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
-    subToggle.addEventListener("click", () => { if(expandedTasks.has(i)) expandedTasks.delete(i); else expandedTasks.add(i); render(); });
-
-    const delBtn = document.createElement("button"); delBtn.className = "icon-btn del"; delBtn.title = "Remove";
-    delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
-    delBtn.addEventListener("click", () => deleteTask(i));
-
+  const pct = total===0?0:Math.round((done/total)*100);
+  document.getElementById('fill').style.width = pct+'%';
+  document.getElementById('pct').textContent = pct+'%';
+  document.getElementById('count-text').textContent = total===0?'No tasks yet':done+' of '+total+' completed';
+  if(total===0){list.innerHTML='<div class="empty-state">Add your first task above</div>';return;}
+  list.innerHTML='';
+  tasks.forEach((task,i)=>{
+    const item=document.createElement('div');
+    item.className='task-item'+(task.done?' done':'');
+    const main=document.createElement('div'); main.className='task-main';
+    const box=document.createElement('div');
+    box.className='checkbox'+(task.done?' checked':'');
+    box.innerHTML='<svg class="chk-svg" viewBox="0 0 10 7"><path d="M1 3.5L3.5 6L9 1"/></svg>';
+    box.addEventListener('click',()=>toggleTask(i));
+    const txt=document.createElement('span'); txt.className='task-text'; txt.textContent=task.text;
+    const subs=task.subtasks||[];
+    const subCountEl=document.createElement('span'); subCountEl.className='sub-count';
+    if(subs.length>0) subCountEl.textContent=countSubDone(subs)+'/'+subs.length;
+    const actions=document.createElement('div'); actions.className='task-actions';
+    const subToggle=document.createElement('button'); subToggle.className='icon-btn'; subToggle.title='Subtasks';
+    subToggle.innerHTML='<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h6M2 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+    subToggle.addEventListener('click',()=>{if(expandedTasks.has(i))expandedTasks.delete(i);else expandedTasks.add(i);render();});
+    const delBtn=document.createElement('button'); delBtn.className='icon-btn del'; delBtn.title='Remove';
+    delBtn.innerHTML='<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+    delBtn.addEventListener('click',()=>deleteTask(i));
     actions.appendChild(subToggle); actions.appendChild(delBtn);
     main.appendChild(box); main.appendChild(txt); main.appendChild(subCountEl); main.appendChild(actions);
     item.appendChild(main);
-
-    if (expandedTasks.has(i)) {
-      const subArea = document.createElement("div"); subArea.className = "subtask-area";
-      (task.subtasks||[]).forEach((sub, j) => {
-        const si = document.createElement("div"); si.className = "subtask-item" + (sub.done ? " done" : "");
-        const sb = document.createElement("div"); sb.className = "checkbox" + (sub.done ? " checked" : "");
-        sb.innerHTML = '<svg class="chk-svg" viewBox="0 0 10 7"><path d="M1 3.5L3.5 6L9 1"/></svg>';
-        sb.addEventListener("click", () => toggleSubtask(i, j));
-        const st = document.createElement("span"); st.className = "subtask-text"; st.textContent = sub.text;
-        const sd = document.createElement("button"); sd.className = "subtask-del"; sd.innerHTML = "&times;";
-        sd.addEventListener("click", () => deleteSubtask(i, j));
+    if(expandedTasks.has(i)){
+      const subArea=document.createElement('div'); subArea.className='subtask-area';
+      (task.subtasks||[]).forEach((sub,j)=>{
+        const si=document.createElement('div'); si.className='subtask-item'+(sub.done?' done':'');
+        const sb=document.createElement('div'); sb.className='checkbox'+(sub.done?' checked':'');
+        sb.innerHTML='<svg class="chk-svg" viewBox="0 0 10 7"><path d="M1 3.5L3.5 6L9 1"/></svg>';
+        sb.addEventListener('click',()=>toggleSubtask(i,j));
+        const st=document.createElement('span'); st.className='subtask-text'; st.textContent=sub.text;
+        const sd=document.createElement('button'); sd.className='subtask-del'; sd.innerHTML='&times;';
+        sd.addEventListener('click',()=>deleteSubtask(i,j));
         si.appendChild(sb); si.appendChild(st); si.appendChild(sd); subArea.appendChild(si);
       });
-      const subInputRow = document.createElement("div"); subInputRow.className = "subtask-input-row";
-      const subInput = document.createElement("input"); subInput.type = "text"; subInput.placeholder = "Add subtask…"; subInput.maxLength = 100;
-      const subAddBtn = document.createElement("button"); subAddBtn.className = "btn-sub-add"; subAddBtn.textContent = "Add";
-      function addSub() {
-        const v = subInput.value.trim(); if (!v) return;
-        const updated = [...(tasks[i].subtasks||[]), {text:v, done:false}];
-        saveTaskUpdate(i, {subtasks: updated});
-        subInput.value = ""; expandedTasks.add(i);
+      const subInputRow=document.createElement('div'); subInputRow.className='subtask-input-row';
+      const subInput=document.createElement('input'); subInput.type='text'; subInput.placeholder='Add subtask…'; subInput.maxLength=100;
+      const subAddBtn=document.createElement('button'); subAddBtn.className='btn-sub-add'; subAddBtn.textContent='Add';
+      function addSub(){
+        const v=subInput.value.trim(); if(!v)return;
+        const updated=[...(tasks[i].subtasks||[]),{text:v,done:false}];
+        updateTask(i,{subtasks:updated});
+        subInput.value=''; expandedTasks.add(i);
       }
-      subAddBtn.addEventListener("click", addSub);
-      subInput.addEventListener("keydown", e => { if(e.key==="Enter") addSub(); });
+      subAddBtn.addEventListener('click',addSub);
+      subInput.addEventListener('keydown',e=>{if(e.key==='Enter')addSub();});
       subInputRow.appendChild(subInput); subInputRow.appendChild(subAddBtn);
       subArea.appendChild(subInputRow); item.appendChild(subArea);
     }
@@ -241,136 +264,163 @@ function render() {
   });
 }
 
+async function loadTasks() {
+  const {data,error} = await supabase.from('tasks').select('*').order('created_at');
+  if(!error){ tasks=data||[]; render(); setSyncStatus('synced'); }
+  else setSyncStatus('error');
+}
+
 async function toggleTask(i) {
-  await saveTaskUpdate(i, {done: !tasks[i].done});
+  await updateTask(i,{done:!tasks[i].done});
 }
 
-async function toggleSubtask(i, j) {
-  const subs = [...(tasks[i].subtasks||[])];
-  subs[j] = {...subs[j], done: !subs[j].done};
-  await saveTaskUpdate(i, {subtasks: subs});
+async function toggleSubtask(i,j) {
+  const subs=[...(tasks[i].subtasks||[])];
+  subs[j]={...subs[j],done:!subs[j].done};
+  await updateTask(i,{subtasks:subs});
 }
 
-async function deleteSubtask(i, j) {
-  const subs = [...(tasks[i].subtasks||[])];
-  subs.splice(j, 1);
-  await saveTaskUpdate(i, {subtasks: subs});
+async function deleteSubtask(i,j) {
+  const subs=[...(tasks[i].subtasks||[])];
+  subs.splice(j,1);
+  await updateTask(i,{subtasks:subs});
 }
 
-async function saveTaskUpdate(i, fields) {
-  setSyncStatus("syncing");
-  try {
-    const task = tasks[i];
-    const updated = {...task, ...fields};
-    await setDoc(doc(db, "tasks", task.id), updated);
-    setSyncStatus("synced");
-  } catch(e) { setSyncStatus("error"); }
+async function updateTask(i,fields) {
+  setSyncStatus('syncing');
+  const {error} = await supabase.from('tasks').update(fields).eq('id',tasks[i].id);
+  if(error) setSyncStatus('error'); else setSyncStatus('synced');
 }
 
 async function addTask() {
-  const inp = document.getElementById("task-input");
-  const v = inp.value.trim(); if (!v) return;
-  inp.value = "";
-  setSyncStatus("syncing");
-  try {
-    await addDoc(tasksCol, {text:v, done:false, subtasks:[], created:Date.now(), order:Date.now()});
-    setSyncStatus("synced");
-  } catch(e) { setSyncStatus("error"); }
+  const inp=document.getElementById('task-input');
+  const v=inp.value.trim(); if(!v)return;
+  inp.value='';
+  setSyncStatus('syncing');
+  const {error} = await supabase.from('tasks').insert({text:v,done:false,subtasks:[],user_id:currentUser.id});
+  if(error) setSyncStatus('error'); else setSyncStatus('synced');
 }
 
 async function deleteTask(i) {
-  setSyncStatus("syncing");
-  try {
-    await deleteDoc(doc(db, "tasks", tasks[i].id));
-    expandedTasks.delete(i);
-    setSyncStatus("synced");
-  } catch(e) { setSyncStatus("error"); }
+  setSyncStatus('syncing');
+  const {error} = await supabase.from('tasks').delete().eq('id',tasks[i].id);
+  if(error) setSyncStatus('error'); else { expandedTasks.delete(i); setSyncStatus('synced'); }
 }
 
-document.getElementById("btn-add").addEventListener("click", addTask);
-document.getElementById("task-input").addEventListener("keydown", e => { if(e.key==="Enter") addTask(); });
+document.getElementById('btn-add').addEventListener('click',addTask);
+document.getElementById('task-input').addEventListener('keydown',e=>{if(e.key==='Enter')addTask();});
 
-document.getElementById("btn-reset").addEventListener("click", async () => {
-  if (tasks.length === 0) return;
-  if (!confirm("Reset list? Completed tasks will be archived.")) return;
-  setSyncStatus("syncing");
-  try {
-    const ts = Date.now();
-    const dk = todayKey();
-    const completed = tasks.filter(t => t.done);
-    for (const t of completed) {
-      await addDoc(archiveCol, {text:t.text, subtasks:t.subtasks||[], completedAt:ts, dateKey:dk});
-    }
-    for (const t of tasks) {
-      await deleteDoc(doc(db, "tasks", t.id));
-    }
-    setSyncStatus("synced");
-  } catch(e) { setSyncStatus("error"); }
-});
-
-onSnapshot(query(tasksCol, orderBy("created")), (snap) => {
-  tasks = snap.docs.map(d => ({id:d.id, ...d.data()}));
-  if (!loaded) {
-    loaded = true;
-    document.getElementById("loading").style.display = "none";
-    setSyncStatus("synced");
+document.getElementById('btn-reset').addEventListener('click',async()=>{
+  if(tasks.length===0)return;
+  if(!confirm('Reset list? Completed tasks will be archived.'))return;
+  setSyncStatus('syncing');
+  const completed=tasks.filter(t=>t.done);
+  const now=new Date().toISOString();
+  const dk=todayKey();
+  if(completed.length>0){
+    await supabase.from('archive').insert(completed.map(t=>({
+      user_id:currentUser.id, text:t.text, subtasks:t.subtasks||[], completed_at:now, date_key:dk
+    })));
   }
-  render();
-}, () => { setSyncStatus("error"); });
+  await supabase.from('tasks').delete().eq('user_id',currentUser.id);
+  setSyncStatus('synced');
+});
 
 async function renderArchive() {
-  const el = document.getElementById("archive-list");
-  el.innerHTML = '<div class="empty-state">Loading…</div>';
-  try {
-    const snap = await getDocs(query(archiveCol, orderBy("completedAt")));
-    archive = snap.docs.map(d => ({id:d.id, ...d.data()}));
-    const now = Date.now();
-    const ranges = {day:86400000, week:7*86400000, month:30*86400000, all:Infinity};
-    const cutoff = now - ranges[archiveRange];
-    const filtered = archive.filter(a => a.completedAt >= cutoff);
-    if (filtered.length === 0) { el.innerHTML = '<div class="empty-state">No completed tasks in this period</div>'; return; }
-    const groups = {};
-    filtered.forEach(a => { const k = a.dateKey||fmtDate(a.completedAt); if(!groups[k]) groups[k]=[]; groups[k].push(a); });
-    const sortedKeys = Object.keys(groups).sort((a,b) => b.localeCompare(a));
-    el.innerHTML = "";
-    sortedKeys.forEach(k => {
-      const grp = document.createElement("div"); grp.className = "archive-group";
-      const lbl = document.createElement("div"); lbl.className = "archive-group-label";
-      lbl.textContent = new Date(groups[k][0].completedAt).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
-      grp.appendChild(lbl);
-      groups[k].forEach(a => {
-        const row = document.createElement("div"); row.className = "archive-item";
-        const dot = document.createElement("div"); dot.className = "archive-dot";
-        const content = document.createElement("div"); content.className = "archive-content";
-        const taskLbl = document.createElement("div"); taskLbl.className = "archive-task"; taskLbl.textContent = a.text;
-        content.appendChild(taskLbl);
-        if ((a.subtasks||[]).length > 0) {
-          const subLbl = document.createElement("div"); subLbl.className = "archive-sub";
-          subLbl.textContent = a.subtasks.map(s=>s.text).join(" · "); content.appendChild(subLbl);
-        }
-        const dateEl = document.createElement("div"); dateEl.className = "archive-date"; dateEl.textContent = fmtDate(a.completedAt);
-        row.appendChild(dot); row.appendChild(content); row.appendChild(dateEl); grp.appendChild(row);
-      });
-      el.appendChild(grp);
+  const el=document.getElementById('archive-list');
+  el.innerHTML='<div class="loading-msg">Loading…</div>';
+  const now=new Date();
+  const ranges={day:1,week:7,month:30,all:36500};
+  const days=ranges[archiveRange];
+  const since=new Date(now.getTime()-days*86400000).toISOString();
+  const q = archiveRange==='all'
+    ? supabase.from('archive').select('*').order('completed_at',{ascending:false})
+    : supabase.from('archive').select('*').gte('completed_at',since).order('completed_at',{ascending:false});
+  const {data,error}=await q;
+  if(error||!data||data.length===0){el.innerHTML='<div class="empty-state">No completed tasks in this period</div>';return;}
+  const groups={};
+  data.forEach(a=>{const k=a.date_key||fmtDate(a.completed_at);if(!groups[k])groups[k]=[];groups[k].push(a);});
+  el.innerHTML='';
+  Object.keys(groups).forEach(k=>{
+    const grp=document.createElement('div'); grp.className='archive-group';
+    const lbl=document.createElement('div'); lbl.className='archive-group-label';
+    lbl.textContent=new Date(groups[k][0].completed_at).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+    grp.appendChild(lbl);
+    groups[k].forEach(a=>{
+      const row=document.createElement('div'); row.className='archive-item';
+      const dot=document.createElement('div'); dot.className='archive-dot';
+      const content=document.createElement('div'); content.className='archive-content';
+      const taskLbl=document.createElement('div'); taskLbl.className='archive-task'; taskLbl.textContent=a.text;
+      content.appendChild(taskLbl);
+      if((a.subtasks||[]).length>0){
+        const subLbl=document.createElement('div'); subLbl.className='archive-sub';
+        subLbl.textContent=a.subtasks.map(s=>s.text).join(' · '); content.appendChild(subLbl);
+      }
+      const dateEl=document.createElement('div'); dateEl.className='archive-date'; dateEl.textContent=fmtDate(a.completed_at);
+      row.appendChild(dot); row.appendChild(content); row.appendChild(dateEl); grp.appendChild(row);
     });
-  } catch(e) { el.innerHTML = '<div class="empty-state">Could not load archive</div>'; }
+    el.appendChild(grp);
+  });
 }
 
-document.querySelectorAll(".tab").forEach(t => {
-  t.addEventListener("click", () => {
-    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
-    t.classList.add("active");
-    document.getElementById("panel-"+t.dataset.tab).classList.add("active");
-    if (t.dataset.tab === "archive") renderArchive();
+function setupRealtime() {
+  if(realtimeChannel) supabase.removeChannel(realtimeChannel);
+  realtimeChannel = supabase.channel('tasks-changes')
+    .on('postgres_changes',{event:'*',schema:'public',table:'tasks',filter:`user_id=eq.${currentUser.id}`},()=>loadTasks())
+    .subscribe();
+}
+
+function setUserUI(user) {
+  currentUser=user;
+  document.getElementById('user-name').textContent=user.user_metadata?.full_name||user.email;
+  const avatar=document.getElementById('user-avatar');
+  if(user.user_metadata?.avatar_url){
+    avatar.innerHTML=`<img src="${user.user_metadata.avatar_url}" alt="avatar"/>`;
+  } else {
+    avatar.textContent=(user.email||'U')[0].toUpperCase();
+  }
+  document.getElementById('date-line').textContent=today();
+  show('screen-app');
+  loadTasks();
+  setupRealtime();
+}
+
+document.getElementById('btn-google').addEventListener('click',async()=>{
+  const {error}=await supabase.auth.signInWithOAuth({
+    provider:'google',
+    options:{redirectTo:window.location.href}
+  });
+  if(error){ document.getElementById('login-error').style.display='block'; }
+});
+
+document.getElementById('btn-signout').addEventListener('click',async()=>{
+  await supabase.auth.signOut();
+  tasks=[]; expandedTasks.clear();
+  show('screen-login');
+});
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+    if(t.dataset.tab==='archive') renderArchive();
   });
 });
 
-document.querySelectorAll(".filter-btn").forEach(b => {
-  b.addEventListener("click", () => {
-    document.querySelectorAll(".filter-btn").forEach(x=>x.classList.remove("active"));
-    b.classList.add("active"); archiveRange = b.dataset.range; renderArchive();
+document.querySelectorAll('.filter-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.filter-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); archiveRange=b.dataset.range; renderArchive();
   });
+});
+
+const {data:{session}} = await supabase.auth.getSession();
+if(session?.user){ setUserUI(session.user); }
+
+supabase.auth.onAuthStateChange((_event,session)=>{
+  if(session?.user) setUserUI(session.user);
 });
 </script>
 </body>
