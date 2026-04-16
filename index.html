@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Daily To-Do</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0a0a0a;min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+.app{max-width:580px;margin:0 auto;padding:2rem 1.25rem 3rem}
+.tab-row{display:flex;gap:2px;margin-bottom:1.5rem;border-bottom:0.5px solid #2a2a2a;padding-bottom:0}
+.tab{padding:8px 16px;font-size:14px;font-weight:400;color:#666;background:transparent;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;transition:color .15s}
+.tab.active{color:#f0f0f0;font-weight:500;border-bottom:2px solid #1D9E75}
+.tab:hover:not(.active){color:#ccc}
+.panel{display:none}.panel.active{display:block}
+.date-line{font-size:13px;color:#555;margin-bottom:4px}
+.title{font-size:22px;font-weight:500;color:#f0f0f0;margin-bottom:1.25rem}
+.progress-meta{display:flex;justify-content:space-between;margin-bottom:6px}
+.progress-label{font-size:13px;color:#666}
+.progress-pct{font-size:13px;font-weight:500;color:#f0f0f0}
+.progress-track{height:6px;background:#1a1a1a;border-radius:99px;overflow:hidden;border:0.5px solid #2a2a2a;margin-bottom:1.25rem}
+.progress-fill{height:100%;background:#1D9E75;border-radius:99px;transition:width .35s ease}
+.input-row{display:flex;gap:8px;margin-bottom:1rem}
+.input-row input{flex:1;height:40px;padding:0 12px;font-size:15px;border-radius:8px;border:0.5px solid #2a2a2a;background:#141414;color:#f0f0f0;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s}
+.input-row input:focus{box-shadow:0 0 0 2px #0F6E56;border-color:#1D9E75}
+.input-row input::placeholder{color:#444}
+.btn-add{height:40px;padding:0 18px;font-size:14px;font-weight:500;border-radius:8px;border:0.5px solid #1D9E75;background:#1D9E75;color:#fff;cursor:pointer;font-family:inherit;transition:background .15s;white-space:nowrap}
+.btn-add:hover{background:#0F6E56;border-color:#0F6E56}
+.task-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1.25rem}
+.task-item{background:#111;border:0.5px solid #222;border-radius:8px;overflow:hidden}
+.task-main{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.task-item.done>.task-main .task-text{text-decoration:line-through;color:#444}
+.task-item.done>.task-main{opacity:.5}
+.checkbox{width:18px;height:18px;border-radius:4px;border:1.5px solid #333;background:transparent;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:background .15s,border-color .15s}
+.checkbox.checked{background:#1D9E75;border-color:#1D9E75}
+.chk-svg{display:none;width:10px;height:7px}
+.chk-svg path{stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.checkbox.checked .chk-svg{display:block}
+.task-text{flex:1;font-size:15px;color:#ddd;word-break:break-word}
+.task-actions{display:flex;align-items:center;gap:4px;opacity:0;transition:opacity .15s}
+.task-item:hover .task-actions{opacity:1}
+.icon-btn{width:26px;height:26px;border-radius:4px;border:none;background:transparent;cursor:pointer;color:#555;display:flex;align-items:center;justify-content:center;font-family:inherit;transition:color .15s}
+.icon-btn:hover{color:#ccc}
+.icon-btn.del:hover{color:#E24B4A}
+.sub-count{font-size:11px;color:#555;margin-left:2px}
+.subtask-area{padding:0 12px 10px 40px;display:flex;flex-direction:column;gap:4px}
+.subtask-input-row{display:flex;gap:6px;margin-top:4px}
+.subtask-input-row input{flex:1;height:30px;padding:0 10px;font-size:13px;border-radius:8px;border:0.5px solid #2a2a2a;background:#0a0a0a;color:#ddd;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s}
+.subtask-input-row input:focus{box-shadow:0 0 0 2px #0F6E56;border-color:#1D9E75}
+.subtask-input-row input::placeholder{color:#444}
+.btn-sub-add{height:30px;padding:0 10px;font-size:12px;border-radius:8px;border:0.5px solid #2a2a2a;background:transparent;color:#888;cursor:pointer;font-family:inherit;transition:background .15s,color .15s}
+.btn-sub-add:hover{background:#1a1a1a;color:#ccc}
+.subtask-item{display:flex;align-items:center;gap:8px;padding:4px 0}
+.subtask-item .checkbox{width:14px;height:14px;border-radius:3px}
+.subtask-text{flex:1;font-size:13px;color:#888}
+.subtask-item.done .subtask-text{text-decoration:line-through;color:#444}
+.subtask-del{width:20px;height:20px;border:none;background:transparent;cursor:pointer;color:#444;font-size:14px;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.subtask-item:hover .subtask-del{opacity:1}
+.subtask-del:hover{color:#E24B4A}
+.footer{display:flex;justify-content:space-between;align-items:center;padding-top:1rem;border-top:0.5px solid #1e1e1e}
+.count-text{font-size:13px;color:#555}
+.btn-reset{height:32px;padding:0 14px;font-size:13px;border-radius:8px;border:0.5px solid #2a2a2a;background:transparent;color:#666;cursor:pointer;font-family:inherit;transition:all .15s}
+.btn-reset:hover{background:#2a0a0a;color:#E24B4A;border-color:#4a1515}
+.empty-state{text-align:center;padding:2.5rem 1rem;color:#444;font-size:14px}
+.archive-filters{display:flex;gap:6px;margin-bottom:1.25rem;flex-wrap:wrap}
+.filter-btn{height:30px;padding:0 12px;font-size:13px;border-radius:99px;border:0.5px solid #2a2a2a;background:transparent;color:#666;cursor:pointer;font-family:inherit;transition:all .15s}
+.filter-btn.active{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.filter-btn:hover:not(.active){background:#1a1a1a;color:#ccc}
+.archive-group{margin-bottom:1.5rem}
+.archive-group-label{font-size:12px;font-weight:500;color:#444;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+.archive-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:#111;border:0.5px solid #222;border-radius:8px;margin-bottom:5px}
+.archive-dot{width:8px;height:8px;border-radius:50%;background:#1D9E75;flex-shrink:0;margin-top:5px}
+.archive-content{flex:1}
+.archive-task{font-size:14px;color:#666;text-decoration:line-through}
+.archive-sub{font-size:12px;color:#444;margin-top:2px}
+.archive-date{font-size:12px;color:#444;flex-shrink:0}
+.archive-title{font-size:22px;font-weight:500;color:#f0f0f0;margin-bottom:1.25rem}
+.sync-status{display:flex;align-items:center;gap:6px;font-size:12px;color:#555;margin-bottom:1rem;height:18px}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:#555;flex-shrink:0;transition:background .3s}
+.sync-dot.synced{background:#1D9E75}
+.sync-dot.syncing{background:#BA7517;animation:pulse 1s infinite}
+.sync-dot.error{background:#E24B4A}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.loading-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:#0a0a0a;display:flex;align-items:center;justify-content:center;font-size:14px;color:#555;z-index:10}
+.app-wrap{position:relative;min-height:200px}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="tab-row">
+    <button class="tab active" data-tab="todo">Today</button>
+    <button class="tab" data-tab="archive">Archive</button>
+  </div>
+
+  <div class="panel active" id="panel-todo">
+    <div class="date-line" id="date-line"></div>
+    <div class="title">Today's tasks</div>
+    <div class="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">Connecting…</span>
+    </div>
+    <div class="progress-meta">
+      <span class="progress-label">Progress</span>
+      <span class="progress-pct" id="pct">0%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="fill" style="width:0%"></div></div>
+    <div class="input-row">
+      <input type="text" id="task-input" placeholder="Add a new task…" maxlength="140"/>
+      <button class="btn-add" id="btn-add">Add</button>
+    </div>
+    <div class="app-wrap">
+      <div class="loading-overlay" id="loading">Loading tasks…</div>
+      <div class="task-list" id="task-list"></div>
+    </div>
+    <div class="footer">
+      <span class="count-text" id="count-text">No tasks yet</span>
+      <button class="btn-reset" id="btn-reset">Reset list</button>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-archive">
+    <div class="archive-title">Archive</div>
+    <div class="archive-filters">
+      <button class="filter-btn active" data-range="day">Today</button>
+      <button class="filter-btn" data-range="week">Past week</button>
+      <button class="filter-btn" data-range="month">Past month</button>
+      <button class="filter-btn" data-range="all">All time</button>
+    </div>
+    <div id="archive-list"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, doc, onSnapshot, setDoc, deleteDoc, getDocs, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBkCHzH9p5cHpu2KG5dieuexkVsrPpmMxI",
+  authDomain: "to-do-list-6f13e.firebaseapp.com",
+  projectId: "to-do-list-6f13e",
+  storageBucket: "to-do-list-6f13e.firebasestorage.app",
+  messagingSenderId: "328322537248",
+  appId: "1:328322537248:web:f2efb305fe3dbdbb466945"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const tasksCol = collection(db, "tasks");
+const archiveCol = collection(db, "archive");
+
+let tasks = [];
+let archive = [];
+let expandedTasks = new Set();
+let archiveRange = "day";
+let loaded = false;
+
+function today() { return new Date().toLocaleDateString("en-US", {weekday:"long",month:"long",day:"numeric"}); }
+function todayKey() { const d = new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
+function fmtDate(ts) { return new Date(ts).toLocaleDateString("en-US", {month:"short",day:"numeric",year:"numeric"}); }
+
+document.getElementById("date-line").textContent = today();
+
+function setSyncStatus(state) {
+  const dot = document.getElementById("sync-dot");
+  const lbl = document.getElementById("sync-label");
+  dot.className = "sync-dot " + state;
+  lbl.textContent = state === "synced" ? "Synced" : state === "syncing" ? "Saving…" : "Offline — changes may not save";
+}
+
+function countSubDone(sub) { return (sub||[]).filter(s=>s.done).length; }
+
+function render() {
+  const list = document.getElementById("task-list");
+  const total = tasks.length;
+  const done = tasks.filter(t=>t.done).length;
+  const pct = total === 0 ? 0 : Math.round((done/total)*100);
+  document.getElementById("fill").style.width = pct+"%";
+  document.getElementById("pct").textContent = pct+"%";
+  document.getElementById("count-text").textContent = total === 0 ? "No tasks yet" : done+" of "+total+" completed";
+
+  if (total === 0) { list.innerHTML = '<div class="empty-state">Add your first task above</div>'; return; }
+  list.innerHTML = "";
+  tasks.forEach((task, i) => {
+    const item = document.createElement("div");
+    item.className = "task-item" + (task.done ? " done" : "");
+    const main = document.createElement("div"); main.className = "task-main";
+
+    const box = document.createElement("div");
+    box.className = "checkbox" + (task.done ? " checked" : "");
+    box.innerHTML = '<svg class="chk-svg" viewBox="0 0 10 7"><path d="M1 3.5L3.5 6L9 1"/></svg>';
+    box.addEventListener("click", () => toggleTask(i));
+
+    const txt = document.createElement("span"); txt.className = "task-text"; txt.textContent = task.text;
+
+    const subs = task.subtasks || [];
+    const subCountEl = document.createElement("span"); subCountEl.className = "sub-count";
+    if (subs.length > 0) subCountEl.textContent = countSubDone(subs)+"/"+subs.length;
+
+    const actions = document.createElement("div"); actions.className = "task-actions";
+
+    const subToggle = document.createElement("button"); subToggle.className = "icon-btn"; subToggle.title = "Subtasks";
+    subToggle.innerHTML = '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 4h10M2 7h6M2 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+    subToggle.addEventListener("click", () => { if(expandedTasks.has(i)) expandedTasks.delete(i); else expandedTasks.add(i); render(); });
+
+    const delBtn = document.createElement("button"); delBtn.className = "icon-btn del"; delBtn.title = "Remove";
+    delBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 2l8 8M10 2l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>';
+    delBtn.addEventListener("click", () => deleteTask(i));
+
+    actions.appendChild(subToggle); actions.appendChild(delBtn);
+    main.appendChild(box); main.appendChild(txt); main.appendChild(subCountEl); main.appendChild(actions);
+    item.appendChild(main);
+
+    if (expandedTasks.has(i)) {
+      const subArea = document.createElement("div"); subArea.className = "subtask-area";
+      (task.subtasks||[]).forEach((sub, j) => {
+        const si = document.createElement("div"); si.className = "subtask-item" + (sub.done ? " done" : "");
+        const sb = document.createElement("div"); sb.className = "checkbox" + (sub.done ? " checked" : "");
+        sb.innerHTML = '<svg class="chk-svg" viewBox="0 0 10 7"><path d="M1 3.5L3.5 6L9 1"/></svg>';
+        sb.addEventListener("click", () => toggleSubtask(i, j));
+        const st = document.createElement("span"); st.className = "subtask-text"; st.textContent = sub.text;
+        const sd = document.createElement("button"); sd.className = "subtask-del"; sd.innerHTML = "&times;";
+        sd.addEventListener("click", () => deleteSubtask(i, j));
+        si.appendChild(sb); si.appendChild(st); si.appendChild(sd); subArea.appendChild(si);
+      });
+      const subInputRow = document.createElement("div"); subInputRow.className = "subtask-input-row";
+      const subInput = document.createElement("input"); subInput.type = "text"; subInput.placeholder = "Add subtask…"; subInput.maxLength = 100;
+      const subAddBtn = document.createElement("button"); subAddBtn.className = "btn-sub-add"; subAddBtn.textContent = "Add";
+      function addSub() {
+        const v = subInput.value.trim(); if (!v) return;
+        const updated = [...(tasks[i].subtasks||[]), {text:v, done:false}];
+        saveTaskUpdate(i, {subtasks: updated});
+        subInput.value = ""; expandedTasks.add(i);
+      }
+      subAddBtn.addEventListener("click", addSub);
+      subInput.addEventListener("keydown", e => { if(e.key==="Enter") addSub(); });
+      subInputRow.appendChild(subInput); subInputRow.appendChild(subAddBtn);
+      subArea.appendChild(subInputRow); item.appendChild(subArea);
+    }
+    list.appendChild(item);
+  });
+}
+
+async function toggleTask(i) {
+  await saveTaskUpdate(i, {done: !tasks[i].done});
+}
+
+async function toggleSubtask(i, j) {
+  const subs = [...(tasks[i].subtasks||[])];
+  subs[j] = {...subs[j], done: !subs[j].done};
+  await saveTaskUpdate(i, {subtasks: subs});
+}
+
+async function deleteSubtask(i, j) {
+  const subs = [...(tasks[i].subtasks||[])];
+  subs.splice(j, 1);
+  await saveTaskUpdate(i, {subtasks: subs});
+}
+
+async function saveTaskUpdate(i, fields) {
+  setSyncStatus("syncing");
+  try {
+    const task = tasks[i];
+    const updated = {...task, ...fields};
+    await setDoc(doc(db, "tasks", task.id), updated);
+    setSyncStatus("synced");
+  } catch(e) { setSyncStatus("error"); }
+}
+
+async function addTask() {
+  const inp = document.getElementById("task-input");
+  const v = inp.value.trim(); if (!v) return;
+  inp.value = "";
+  setSyncStatus("syncing");
+  try {
+    await addDoc(tasksCol, {text:v, done:false, subtasks:[], created:Date.now(), order:Date.now()});
+    setSyncStatus("synced");
+  } catch(e) { setSyncStatus("error"); }
+}
+
+async function deleteTask(i) {
+  setSyncStatus("syncing");
+  try {
+    await deleteDoc(doc(db, "tasks", tasks[i].id));
+    expandedTasks.delete(i);
+    setSyncStatus("synced");
+  } catch(e) { setSyncStatus("error"); }
+}
+
+document.getElementById("btn-add").addEventListener("click", addTask);
+document.getElementById("task-input").addEventListener("keydown", e => { if(e.key==="Enter") addTask(); });
+
+document.getElementById("btn-reset").addEventListener("click", async () => {
+  if (tasks.length === 0) return;
+  if (!confirm("Reset list? Completed tasks will be archived.")) return;
+  setSyncStatus("syncing");
+  try {
+    const ts = Date.now();
+    const dk = todayKey();
+    const completed = tasks.filter(t => t.done);
+    for (const t of completed) {
+      await addDoc(archiveCol, {text:t.text, subtasks:t.subtasks||[], completedAt:ts, dateKey:dk});
+    }
+    for (const t of tasks) {
+      await deleteDoc(doc(db, "tasks", t.id));
+    }
+    setSyncStatus("synced");
+  } catch(e) { setSyncStatus("error"); }
+});
+
+onSnapshot(query(tasksCol, orderBy("created")), (snap) => {
+  tasks = snap.docs.map(d => ({id:d.id, ...d.data()}));
+  if (!loaded) {
+    loaded = true;
+    document.getElementById("loading").style.display = "none";
+    setSyncStatus("synced");
+  }
+  render();
+}, () => { setSyncStatus("error"); });
+
+async function renderArchive() {
+  const el = document.getElementById("archive-list");
+  el.innerHTML = '<div class="empty-state">Loading…</div>';
+  try {
+    const snap = await getDocs(query(archiveCol, orderBy("completedAt")));
+    archive = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    const now = Date.now();
+    const ranges = {day:86400000, week:7*86400000, month:30*86400000, all:Infinity};
+    const cutoff = now - ranges[archiveRange];
+    const filtered = archive.filter(a => a.completedAt >= cutoff);
+    if (filtered.length === 0) { el.innerHTML = '<div class="empty-state">No completed tasks in this period</div>'; return; }
+    const groups = {};
+    filtered.forEach(a => { const k = a.dateKey||fmtDate(a.completedAt); if(!groups[k]) groups[k]=[]; groups[k].push(a); });
+    const sortedKeys = Object.keys(groups).sort((a,b) => b.localeCompare(a));
+    el.innerHTML = "";
+    sortedKeys.forEach(k => {
+      const grp = document.createElement("div"); grp.className = "archive-group";
+      const lbl = document.createElement("div"); lbl.className = "archive-group-label";
+      lbl.textContent = new Date(groups[k][0].completedAt).toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+      grp.appendChild(lbl);
+      groups[k].forEach(a => {
+        const row = document.createElement("div"); row.className = "archive-item";
+        const dot = document.createElement("div"); dot.className = "archive-dot";
+        const content = document.createElement("div"); content.className = "archive-content";
+        const taskLbl = document.createElement("div"); taskLbl.className = "archive-task"; taskLbl.textContent = a.text;
+        content.appendChild(taskLbl);
+        if ((a.subtasks||[]).length > 0) {
+          const subLbl = document.createElement("div"); subLbl.className = "archive-sub";
+          subLbl.textContent = a.subtasks.map(s=>s.text).join(" · "); content.appendChild(subLbl);
+        }
+        const dateEl = document.createElement("div"); dateEl.className = "archive-date"; dateEl.textContent = fmtDate(a.completedAt);
+        row.appendChild(dot); row.appendChild(content); row.appendChild(dateEl); grp.appendChild(row);
+      });
+      el.appendChild(grp);
+    });
+  } catch(e) { el.innerHTML = '<div class="empty-state">Could not load archive</div>'; }
+}
+
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("panel-"+t.dataset.tab).classList.add("active");
+    if (t.dataset.tab === "archive") renderArchive();
+  });
+});
+
+document.querySelectorAll(".filter-btn").forEach(b => {
+  b.addEventListener("click", () => {
+    document.querySelectorAll(".filter-btn").forEach(x=>x.classList.remove("active"));
+    b.classList.add("active"); archiveRange = b.dataset.range; renderArchive();
+  });
+});
+</script>
+</body>
+</html>
