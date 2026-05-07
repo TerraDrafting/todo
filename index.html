@@ -398,19 +398,30 @@ function renderFullGrid(){
 function placeGridEvents(days,grid){
   document.querySelectorAll('.cal-event').forEach(e=>e.remove());
   if(!grid.offsetWidth)return;
-  const hdrEl=grid.children[1];const timeEl=grid.querySelector('.cal-time');
-  if(!hdrEl||!timeEl)return;
-  const hdrH=hdrEl.offsetTop+hdrEl.offsetHeight-grid.offsetTop;
-  const tW=timeEl.offsetWidth;
-  const cW=(grid.offsetWidth-tW)/7;
-  const cH=48;
+  /* The grid has 8 columns (time + 7 days) and 1 header row + 16 hour rows.
+     Header row: children 0-7 (corner + 7 day headers)
+     Each hour row: 8 children (time label + 7 cells)
+     Cell for hour h, day d = index: 8 + (h-HOURS_START)*8 + 1 + d */
+  const gridRect=grid.getBoundingClientRect();
+  const cols=8;
   calEvents.forEach(ev=>{
     const evD=new Date(ev.event_date+'T00:00:00'),di=days.findIndex(d=>isSameDay(d,evD));if(di===-1)return;
     const[sh,sm]=parseTime(ev.start_time),[eh,em]=parseTime(ev.end_time);
     const sH=sh+sm/60,eH=eh+em/60;if(eH<=HOURS_START||sH>=HOURS_END)return;
     const cS=Math.max(sH,HOURS_START),cE=Math.min(eH,HOURS_END);
+    /* Find the cell for the start hour */
+    const startRow=Math.floor(cS)-HOURS_START;
+    const startCellIdx=cols+startRow*cols+1+di;
+    const startCell=grid.children[startCellIdx];
+    if(!startCell)return;
+    const cellRect=startCell.getBoundingClientRect();
+    const fractionalOffset=(cS-Math.floor(cS))*cellRect.height;
+    const topPx=cellRect.top-gridRect.top+fractionalOffset;
+    const leftPx=cellRect.left-gridRect.left;
+    const widthPx=cellRect.width-4;
+    const heightPx=(cE-cS)*cellRect.height-2;
     const el=document.createElement('div');el.className='cal-event';
-    el.style.cssText='top:'+Math.round(hdrH+(cS-HOURS_START)*cH+1)+'px;left:'+Math.round(tW+di*cW+2)+'px;width:'+Math.round(cW-4)+'px;height:'+Math.max(Math.round((cE-cS)*cH)-2,18)+'px;background:'+getCalColor(ev.calendar);
+    el.style.cssText='top:'+Math.round(topPx+1)+'px;left:'+Math.round(leftPx+2)+'px;width:'+Math.round(widthPx)+'px;height:'+Math.max(Math.round(heightPx),18)+'px;background:'+getCalColor(ev.calendar);
     el.textContent=ev.title;el.addEventListener('click',e=>{e.stopPropagation();openEditEvent(ev)});grid.appendChild(el);
   });
 }
