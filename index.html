@@ -345,7 +345,7 @@ async function renderArchive(){
 function getWeekDays(o){const d=new Date();d.setDate(d.getDate()-d.getDay()+o*7);d.setHours(0,0,0,0);return Array.from({length:7},(_,i)=>{const x=new Date(d);x.setDate(d.getDate()+i);return x})}
 function isSameDay(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
 function fmtHour(h){return(h%12||12)+' '+(h>=12?'PM':'AM')}
-function fmtTimeShort(t){const[h,m]=t.split(':').map(Number);return(h%12||12)+':'+(m<10?'0':'')+m+(h>=12?'p':'a')}
+function fmtTimeShort(t){const[h,m]=parseTime(t);return(h%12||12)+':'+(m<10?'0':'')+m+(h>=12?'p':'a')}
 function getCalColor(name){const c=calendars.find(x=>x.name===name);return c?c.color:'#555'}
 
 function renderLegend(){
@@ -376,6 +376,16 @@ function renderMiniAgenda(){
   });
 }
 
+/* Parse time string - handles both "HH:MM" and "HH:MM:SS+00" (timetz) formats.
+   We always want the literal time the user entered, not UTC-shifted. */
+function parseTime(t){
+  if(!t)return[0,0];
+  /* Strip timezone offset if present (e.g. "12:00:00+00" or "12:00:00-07:00") */
+  const clean=t.replace(/[+-]\d{2}(:\d{2})?$/,'');
+  const parts=clean.split(':').map(Number);
+  return[parts[0]||0,parts[1]||0];
+}
+
 function renderFullGrid(){
   const days=getWeekDays(weekOffset),now=new Date(),grid=document.getElementById('cal-grid');grid.innerHTML='';
   const dn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -396,7 +406,7 @@ function placeGridEvents(days,grid){
   const cH=48;
   calEvents.forEach(ev=>{
     const evD=new Date(ev.event_date+'T00:00:00'),di=days.findIndex(d=>isSameDay(d,evD));if(di===-1)return;
-    const[sh,sm]=ev.start_time.split(':').map(Number),[eh,em]=ev.end_time.split(':').map(Number);
+    const[sh,sm]=parseTime(ev.start_time),[eh,em]=parseTime(ev.end_time);
     const sH=sh+sm/60,eH=eh+em/60;if(eH<=HOURS_START||sH>=HOURS_END)return;
     const cS=Math.max(sH,HOURS_START),cE=Math.min(eH,HOURS_END);
     const el=document.createElement('div');el.className='cal-event';
@@ -428,7 +438,8 @@ function openNewEvent(date,hour){
 function openEditEvent(ev){
   editingEventId=ev.id;document.getElementById('modal-title').textContent='Edit event';
   document.getElementById('ev-name').value=ev.title;document.getElementById('ev-date').value=ev.event_date;
-  document.getElementById('ev-start').value=ev.start_time;document.getElementById('ev-end').value=ev.end_time;
+  const[esh,esm]=parseTime(ev.start_time);const[eeh,eem]=parseTime(ev.end_time);
+  document.getElementById('ev-start').value=pad2(esh)+':'+pad2(esm);document.getElementById('ev-end').value=pad2(eeh)+':'+pad2(eem);
   document.getElementById('ev-cal').value=ev.calendar||calendars[0]?.name||'';
   document.getElementById('ev-reminder').value=ev.reminder_minutes!=null?String(ev.reminder_minutes):'';
   document.getElementById('ev-link').value=ev.link||'';document.getElementById('ev-notes').value=ev.notes||'';
